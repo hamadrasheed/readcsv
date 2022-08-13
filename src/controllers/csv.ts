@@ -10,7 +10,7 @@ export const helloWorld = async (req: Request, res: Response): Promise<Response>
 
 export const readCSV = async (req: Request, res: Response): Promise<Response> => {
   
-  const { fileName } = req.body;
+  const { fileName, filter, isbn, email } = req.body;
 
   const validFileNames: string[] = ['author', 'books', 'magzines'];
   const fileNameVal = fileName ? validFileNames.includes(fileName) : false;
@@ -24,7 +24,22 @@ export const readCSV = async (req: Request, res: Response): Promise<Response> =>
   const csvFile = fs.readFileSync(`./${fileName}.csv`, {encoding:'utf8', flag:'r'})
   const parsedJson = parseCsvToJson(csvFile, ';');
 
-  return res.status(200).json(parsedJson);
+  if (filter && (isbn || email)) {
+
+    const results = parsedJson.filter(x => {
+      
+      if (x?.isbn == isbn || x?.authors?.includes(`${email}`)) {
+        return x;
+      }
+      
+    });
+
+    return res.status(HttpStatus.OK).json(formatResponse(results));
+  
+  }
+
+
+  return res.status(HttpStatus.OK).json(formatResponse(parsedJson));
 
 };
 
@@ -52,41 +67,6 @@ export const renderData = async (req: Request, res: Response): Promise<any> => {
 
 };
 
-const modifiedCSV = (csv: any) => {
-
-  return csv.map(((z: any): any => {
-    const objectKeys: string = Object.keys(z)[0];
-    const objectVal: string =  z[`${objectKeys}`];
-    const splitedKey = objectKeys.split(';');
-    const splitedVal = objectVal.split(';');
-    // console.log('objectVal',z);
-    // console.log('splitedVal',splitedVal);
-
-    const result: any = {};
-
-    for (let index = 0; index < splitedKey.length; index++) {
-      const element = splitedKey[index];
-
-      result[`${element}`] = splitedVal[index];
-      
-    }
-
-    return result;
-    // console.log('values', Object.keys(z)[0]);
-    return {
-        DateAndTimeOfExport: z['Date And Time of Export'],
-        BatchId: z['Batch ID'],
-        SampleName: z['Sample Name'],
-        well: z.Well,
-        sampleType: z['Sample Type'],
-        status: z.Status,
-        interpretiveResult: z['Interpretive Result'],
-        achtion: z['Action*']
-    };
-}));
-
-}
-
 const parseCsvToJson = (str: string, delimiter = ",") => {
 
   const headers: string[] = str.slice(0, str.indexOf("\n")).split(delimiter);
@@ -103,6 +83,22 @@ const parseCsvToJson = (str: string, delimiter = ",") => {
     return el;
   });
 
-  // return the array
   return arr;
+
+}
+
+const formatResponse = <T>(val: Array<T> | T) => {
+  
+  const resposne: any =  {
+    message: 'Success',
+  }
+
+  if (Array.isArray(val)) {
+    resposne[`totalRecords`] = val.length;
+  }
+
+  resposne[`data`] = val;
+
+
+  return resposne;
 }
