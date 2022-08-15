@@ -1,6 +1,12 @@
 import { Request, Response } from 'express';
 import * as fs from 'fs';
+import path from 'path';
+import json2csv from 'json2csv';
+import { fileURLToPath } from 'url';
 import * as HttpStatus from 'http-status-codes';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const helloWorld = async (req: Request, res: Response): Promise<Response> => {
 
@@ -38,7 +44,6 @@ export const readCSV = async (req: Request, res: Response): Promise<Response> =>
   return res.status(HttpStatus.OK).json(formatResponse(modifiedResponse));
 
 };
-
 
 export const readBook = async (req: Request, res: Response): Promise<any> => {
   
@@ -143,6 +148,60 @@ export const renderData = async (req: Request, res: Response): Promise<any> => {
 
 };
 
+export const addNewData = async (req: Request, res: Response): Promise<any> => {
+  
+  const { book, magzine} = req.body;
+
+  if (!book && !magzine) {
+    return res.status(HttpStatus.BAD_REQUEST).json({message: 'Invalid request object!'});
+  }
+
+  if (book) {
+
+    const {
+      title,
+      isbn,
+      author,
+      description
+    } = book || {};
+    
+    
+    let dataToWrite: string = ``
+  
+    dataToWrite = title ? `${title}` : '';
+    dataToWrite = isbn ? `${dataToWrite};${isbn}` : `${dataToWrite}; `;
+    dataToWrite = author ? `${dataToWrite};${author}` : `${dataToWrite}; `;
+    dataToWrite = description ? `${dataToWrite};${description}` : `${dataToWrite}; `;
+
+    write('books.csv', dataToWrite);
+
+  }
+
+  if (magzine) {
+
+    const {
+      title,
+      isbn,
+      authors,
+      publishedAt
+    } = magzine || {};
+    
+    
+    let dataToWrite: string = ``
+  
+    dataToWrite = title ? `${title}` : '';
+    dataToWrite = isbn ? `${dataToWrite};${isbn}` : `${dataToWrite}; `;
+    dataToWrite = authors ? `${dataToWrite};${authors}` : `${dataToWrite}; `;
+    dataToWrite = publishedAt ? `${dataToWrite};${publishedAt}` : `${dataToWrite}; `;
+
+    write('magzines.csv', dataToWrite);
+
+  }
+
+  return res.status(HttpStatus.OK).json(formatResponse({}));
+
+};
+
 const parseCsvToJson = (str: string, delimiter = ",") => {
 
   const headers: string[] = str.slice(0, str.indexOf("\n")).split(delimiter);
@@ -188,4 +247,12 @@ const filterData = (parsedJson: any, isbn?: string, email?: string ) => {
     }
     
   });
+}
+
+const write = async (file: string, data: any) => {
+
+  fs.appendFileSync(file, "\r\n");
+  fs.appendFileSync(file, data);
+
+  return null;
 }
