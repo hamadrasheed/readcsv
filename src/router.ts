@@ -7,6 +7,9 @@ router
   .get('/', (req: Request, res: Response) => res.send('hello world'))
   .get('/hello', csv.helloWorld)
   .get('/csv', csv.renderData)
+  .get('/author', csv.readaAuthor)
+  .get('/books', csv.readBook)
+  .get('/magzines', csv.readMagzines)
   .post('/csv', csv.readCSV);
 
 export default router;

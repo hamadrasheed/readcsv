@@ -39,27 +39,107 @@ export const readCSV = async (req: Request, res: Response): Promise<Response> =>
 
 };
 
-export const renderData = async (req: Request, res: Response): Promise<any> => {
+
+export const readBook = async (req: Request, res: Response): Promise<any> => {
   
-  let { fileName } = req.query as unknown as any;
+  const { filter, isbn, email, sortByTitle } = req.body;
 
-  const validFileNames: string[] = ['author', 'books', 'magzines'];
-  const fileNameVal = fileName ? validFileNames.includes(fileName) : false;
+  const booksCsvFile = fs.readFileSync(`./books.csv`, {encoding:'utf8', flag:'r'})
+  let booksParsedJson = parseCsvToJson(booksCsvFile , ';');
 
-  if (!fileNameVal) {
-    return res.status(HttpStatus.FORBIDDEN).json({
-      message: `Only ('author', 'books', 'magzines') is allowed in fileName key!`,
-    });
+  if (filter && (isbn || email)) {
+    booksParsedJson = filterData(booksParsedJson, isbn, email);
   }
 
-  const csvFile = fs.readFileSync(`./${fileName}.csv`, {encoding:'utf8', flag:'r'})
-  const parsedJson = parseCsvToJson(csvFile, ';');
+  if (sortByTitle) {
+    booksParsedJson.sort((a, b) => a.title.localeCompare(b.title))
+  }
 
-  return res.render('../src/views/', {
-    user: {
-      firstName: "hamad"
-    }
-  });
+  const modifiedResponse = {
+    books: booksParsedJson,
+  }
+
+  return res.render('../views/listing', { data : modifiedResponse });
+
+};
+
+export const readaAuthor = async (req: Request, res: Response): Promise<any> => {
+  
+  const { filter, isbn, email } = req.body;
+
+  const authorCsvFile = fs.readFileSync(`./author.csv`, {encoding:'utf8', flag:'r'})
+  let authorParsedJson = parseCsvToJson(authorCsvFile , ';');
+
+  if (filter && (isbn || email)) {
+
+    authorParsedJson = filterData(authorParsedJson, isbn, email);
+  
+  }
+
+  const modifiedResponse = {
+    author: authorParsedJson,
+  }
+
+  return res.render('../views/listing', { data : modifiedResponse });
+
+};
+
+export const readMagzines = async (req: Request, res: Response): Promise<any> => {
+  
+  const { filter, isbn, email,sortByTitle } = req.body;
+
+  const magzinesCsvFile = fs.readFileSync(`./magzines.csv`, {encoding:'utf8', flag:'r'})
+  let magzinesParsedJson = parseCsvToJson(magzinesCsvFile , ';');
+
+  if (filter && (isbn || email)) {
+    magzinesParsedJson = filterData(magzinesParsedJson, isbn, email);
+  }
+
+  if (sortByTitle) {
+    magzinesParsedJson.sort((a, b) => a.title.localeCompare(b.title))
+  }
+
+  const modifiedResponse = {
+    magzines: magzinesParsedJson
+  }
+
+  return res.render('../views/listing', { data : modifiedResponse });
+
+};
+
+export const renderData = async (req: Request, res: Response): Promise<any> => {
+  
+  const { filter, isbn, email, sortByTitle } = req.query as unknown as any;
+
+  const booksCsvFile = fs.readFileSync(`./books.csv`, {encoding:'utf8', flag:'r'})
+  let booksParsedJson = parseCsvToJson(booksCsvFile , ';');
+
+  const authorCsvFile = fs.readFileSync(`./author.csv`, {encoding:'utf8', flag:'r'})
+  let authorParsedJson = parseCsvToJson(authorCsvFile , ';');
+
+  const magzinesCsvFile = fs.readFileSync(`./magzines.csv`, {encoding:'utf8', flag:'r'})
+  let magzinesParsedJson = parseCsvToJson(magzinesCsvFile , ';');
+
+  if (filter && (isbn || email)) {
+
+    magzinesParsedJson = filterData(magzinesParsedJson, isbn, email);
+    booksParsedJson = filterData(booksParsedJson, isbn, email);
+    authorParsedJson = filterData(authorParsedJson, isbn, email);
+  
+  }
+
+  if (sortByTitle) {
+    magzinesParsedJson.sort((a, b) => a.title.localeCompare(b.title))
+    booksParsedJson.sort((a, b) => a.title.localeCompare(b.title))
+  }
+
+  const modifiedResponse = {
+    books: booksParsedJson,
+    author: authorParsedJson,
+    magzines: magzinesParsedJson
+  }
+
+  return res.render('../views/listing', { data : modifiedResponse });
 
 };
 
