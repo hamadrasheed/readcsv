@@ -1,12 +1,6 @@
 import { Request, Response } from 'express';
 import * as fs from 'fs';
-import path from 'path';
-import json2csv from 'json2csv';
-import { fileURLToPath } from 'url';
 import * as HttpStatus from 'http-status-codes';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export const helloWorld = async (req: Request, res: Response): Promise<Response> => {
 

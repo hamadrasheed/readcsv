@@ -1,5 +1,5 @@
 {
-  "name": "fsl-challenge",
+  "name": "node-challenge",
   "main": "src/index.ts",
   "type": "module",
   "version": "0.0.0",
@@ -15,7 +15,6 @@
     "dev": "nodemon",
     "lint": "eslint .",
     "prettier": "./node_modules/.bin/prettier --write \"{src,knex}/**/*.ts\"",
-    "pretest": "cross-env NODE_ENV=test npm run db:rollback:all && cross-env NODE_ENV=test npm run db:migrate",
     "pretest:CI": "cross-env NODE_ENV=test npm run db:migrate",
     "test": "jest --env=node",
     "test:CI": "cross-env NODE_OPTIONS=\"--max-old-space-size=3072\" jest --maxWorkers=2",
