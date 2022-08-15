@@ -10,36 +10,32 @@ export const helloWorld = async (req: Request, res: Response): Promise<Response>
 
 export const readCSV = async (req: Request, res: Response): Promise<Response> => {
   
-  const { fileName, filter, isbn, email } = req.body;
+  const { filter, isbn, email } = req.body;
 
-  const validFileNames: string[] = ['author', 'books', 'magzines'];
-  const fileNameVal = fileName ? validFileNames.includes(fileName) : false;
+  const booksCsvFile = fs.readFileSync(`./books.csv`, {encoding:'utf8', flag:'r'})
+  let booksParsedJson = parseCsvToJson(booksCsvFile , ';');
 
-  if (!fileNameVal) {
-    return res.status(HttpStatus.FORBIDDEN).json({
-      message: `Only ('author', 'books', 'magzines') is allowed in fileName key!`,
-    });
-  }
+  const authorCsvFile = fs.readFileSync(`./author.csv`, {encoding:'utf8', flag:'r'})
+  let authorParsedJson = parseCsvToJson(authorCsvFile , ';');
 
-  const csvFile = fs.readFileSync(`./${fileName}.csv`, {encoding:'utf8', flag:'r'})
-  const parsedJson = parseCsvToJson(csvFile, ';');
+  const magzinesCsvFile = fs.readFileSync(`./magzines.csv`, {encoding:'utf8', flag:'r'})
+  let magzinesParsedJson = parseCsvToJson(magzinesCsvFile , ';');
 
   if (filter && (isbn || email)) {
 
-    const results = parsedJson.filter(x => {
-      
-      if (x?.isbn == isbn || x?.authors?.includes(`${email}`)) {
-        return x;
-      }
-      
-    });
-
-    return res.status(HttpStatus.OK).json(formatResponse(results));
+    magzinesParsedJson = filterData(magzinesParsedJson, isbn, email);
+    booksParsedJson = filterData(booksParsedJson, isbn, email);
+    authorParsedJson = filterData(authorParsedJson, isbn, email);
   
   }
 
+  const modifiedResponse = {
+    books: booksParsedJson,
+    author: authorParsedJson,
+    magzines: magzinesParsedJson
+  }
 
-  return res.status(HttpStatus.OK).json(formatResponse(parsedJson));
+  return res.status(HttpStatus.OK).json(formatResponse(modifiedResponse));
 
 };
 
@@ -101,4 +97,15 @@ const formatResponse = <T>(val: Array<T> | T) => {
 
 
   return resposne;
+}
+
+const filterData = (parsedJson: any, isbn?: string, email?: string ) => {
+  
+  return parsedJson.filter((x: any) => {
+      
+    if ((x?.isbn && isbn && x?.isbn == isbn) || (x?.authors && x?.authors?.includes(`${email}`)) || (x?.email && x?.email?.includes(`${email}`))) {
+      return x;
+    }
+    
+  });
 }
