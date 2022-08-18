@@ -3,7 +3,7 @@
 
 # CSV Reader/Writer
 
-Chiro description
+Description
 
 # Table of contents:
  ![Dependency Vulnerabilities](https://snyk.io/test/npm/request/badge.svg?style=flat-square)
