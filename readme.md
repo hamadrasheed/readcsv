@@ -41,4 +41,4 @@ npm run
 npm run test
 ```
 
-Finally, navigate to `http://localhost:5000` and you should see the backend is running. Now you will test apis with postman!
+Finally, copy `http://localhost:5000/csv` to your browser and you will see frontend of your app. Other APIs could be test with postman!
